@@ -213,7 +213,7 @@ module Datapath #(
   );
   alu alu_module (
       FAmux_Result,
-      SrcB,
+      FBmux_Result,    //adiciona FBMuxresult de modo a selecionar entre o valor imediato e o valor novo.
       ALU_CC,
       ALUResult
   );
