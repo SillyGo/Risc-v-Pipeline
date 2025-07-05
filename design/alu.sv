@@ -34,7 +34,7 @@ module alu#(
             4'b0111:        //SRA
                     ALUResult = SrcA >>> SrcB;
             4'b1100:
-                    ALUResult = (SrcA < SrcB) ? 1 : 0
+                    ALUResult = (SrcA < SrcB) ? 1 : 0;
             default:
                     ALUResult = 0;
             endcase
