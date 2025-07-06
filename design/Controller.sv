@@ -8,7 +8,7 @@ module Controller (
     //Outputs
     output logic ALUSrc,
     //0: The second ALU operand comes from the second register file output (Read data 2); 
-    //1: The second ALU operand is the sign-extended, lower 16 bits of the instruction.
+    //1: The second ALU operand is the sign-extended, lower 12 bits of the instruction.
     output logic MemtoReg,
     //0: The value fed to the register Write data input comes from the ALU.
     //1: The value fed to the register Write data input comes from the data memory.
