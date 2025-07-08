@@ -32,11 +32,11 @@ module alu#(
             4'b0100:        //SLL
                     ALUResult = SrcA << SrcB;
             4'b0111:        //SRA
-                    ALUResult = SrcA >>> SrcB;
+                    ALUResult = (~(32'hFFFFFFFF >> SrcB[4:0])) | (SrcA >> SrcB[4:0]);
             4'b1100:
                     ALUResult = (SrcA < SrcB) ? 1 : 0;
             default:
-                    ALUResult = 0;
+                    ALUResult = 777;
             endcase
         end
 endmodule
