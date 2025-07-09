@@ -5,9 +5,9 @@ Este repositório contém os arquivos base para o projeto da disciplina Infraest
 ---
 
 ## Integrantes
-- 1- Arthur Calabria Villar de Morais Guerra (acvmg) 
-- 2- Ismael Álvaro Lima da Silva (ials)
-- 3- Miguel Câmara Raposo Andrade (mcra)
+- Arthur Calabria Villar de Morais Guerra (acvmg) 
+- Ismael Álvaro Lima da Silva (ials)
+- Miguel Câmara Raposo Andrade (mcra)
 
 ## 📝 Instruções
 
