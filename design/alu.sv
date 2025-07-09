@@ -33,10 +33,10 @@ module alu#(
                     ALUResult = SrcA << SrcB;
             4'b0111:        //SRA
                     ALUResult = (~(32'hFFFFFFFF >> SrcB[4:0])) | (SrcA >> SrcB[4:0]);
-            4'b1100:
-                    ALUResult = (SrcA < SrcB) ? 1 : 0;
+            4'b1100:        //SLT
+                    ALUResult = ($signed(SrcA) < $signed(SrcB)) ? 1 : 0;
             default:
-                    ALUResult = 777;
+                    ALUResult = 0;
             endcase
         end
 endmodule
