@@ -30,27 +30,36 @@ module datamemory #(
 
   always_ff @(*) begin
     raddress = {{22{1'b0}}, a};
-    waddress = {{22{1'b0}}, {a[8:2], {2{1'b0}}}};
+    waddress = {{22{1'b0}}, a};
     Datain = wd;
     Wr = 4'b0000;
 
     if (MemRead) begin
       case (Funct3)
+        3'b000:  //LB
+          rd = {24'b0, Dataout[7:0]};  // Read byte
+        3'b001:  //LH
+          rd = {16'b0, Dataout[15:0]};  // Read half-word
         3'b010:  //LW
-        rd <= Dataout;
-        default: rd <= Dataout;
+          rd = Dataout;  // Read word
+        default: rd = 32'b0;  // Default case for unsupported operations
       endcase
-    end else if (MemWrite) begin
+    end else begin
+      rd = 32'b0;  // No read operation if not reading
+    end
+    if (MemWrite) begin
       case (Funct3)
-        3'b010: begin  //SW
-          Wr <= 4'b1111;
-          Datain <= wd;
-        end
-        default: begin
-          Wr <= 4'b1111;
-          Datain <= wd;
-        end
+        3'b000:  //SB
+          Wr = 4'b0001;  // Write byte
+        3'b001:  //SH
+          Wr = 4'b0011;  // Write half-word
+        3'b010:  //SW
+          Wr = 4'b1111;  // Write word
+        default: Wr = 4'b0000;  // No write operation
       endcase
+      Datain = wd;
+    end else begin
+      Datain = 32'b0;  // No data to write if not writing
     end
   end
 
