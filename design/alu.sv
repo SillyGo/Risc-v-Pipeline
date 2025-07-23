@@ -32,7 +32,7 @@ module alu#(
             4'b0100:        //SLL
                     ALUResult = SrcA << SrcB;
             4'b0111:        //SRA
-                    ALUResult = (~(32'hFFFFFFFF >> SrcB[4:0])) | (SrcA >> SrcB[4:0]);
+                    ALUResult = (SrcA[31] == 1) ? ((~(32'hFFFFFFFF >> SrcB[4:0])) | (SrcA >> SrcB[4:0])): (SrcA >> SrcB[4:0]);
             4'b1100:        //SLT
                     ALUResult = ($signed(SrcA) < $signed(SrcB)) ? 1 : 0;
             4'b1001: // BGE
