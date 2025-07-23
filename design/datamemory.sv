@@ -37,29 +37,31 @@ module datamemory #(
     if (MemRead) begin
       case (Funct3)
         3'b000:  //LB
-          rd = {24'b0, Dataout[7:0]};  // Read byte
+          rd = {{24{Dataout[7]}}, Dataout[7:0]};  // Read byte with sign extension
         3'b001:  //LH
-          rd = {16'b0, Dataout[15:0]};  // Read half-word
+          rd = {{16{Dataout[15]}}, Dataout[15:0]};  // Read half-word with sign extension
         3'b010:  //LW
           rd = Dataout;  // Read word
-        default: rd = 32'b0;  // Default case for unsupported operations
+        3'b100:  //LBU
+          rd = {24'b0, Dataout[7:0]};  // Read byte unsigned (zero-extend)
+        // Default case: For unsupported Funct3 values, return the full word
+        default: rd = Dataout;
       endcase
-    end else begin
-      rd = 32'b0;  // No read operation if not reading
-    end
-    if (MemWrite) begin
+    end else if (MemWrite) begin
       case (Funct3)
         3'b000:  //SB
           Wr = 4'b0001;  // Write byte
         3'b001:  //SH
           Wr = 4'b0011;  // Write half-word
-        3'b010:  //SW
-          Wr = 4'b1111;  // Write word
-        default: Wr = 4'b0000;  // No write operation
+        3'b010: begin  //SW
+          Wr = 4'b1111;
+          Datain = wd;
+        end
+        default: begin
+          Wr = 4'b1111;
+          Datain = wd;
+        end
       endcase
-      Datain = wd;
-    end else begin
-      Datain = 32'b0;  // No data to write if not writing
     end
   end
 

@@ -23,7 +23,7 @@ module Controller (
 
   assign R_TYPE = 7'b0110011;  //add,and,xor,or, (...)
   assign I_TYPE = 7'b0010011;    //imediatas
-  assign LW = 7'b0000011;  //lw, lb, lh
+  assign LW = 7'b0000011;  //lw, lb, lh, lbu
   assign SW = 7'b0100011;  //sw, sb, sh
   assign BR = 7'b1100011;  //beq
 
