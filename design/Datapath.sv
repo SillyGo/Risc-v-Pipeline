@@ -18,6 +18,7 @@ module Datapath #(
     MemWrite,  // Register file or Immediate MUX // Memroy Writing Enable
     MemRead,  // Memroy Reading Enable
     Branch,  // Branch Enable
+    JalrSel,
     input  logic [          1:0] ALUOp,
     input  logic [ALU_CC_W -1:0] ALU_CC,         // ALU Control Code ( input of the ALU )
     output logic [          6:0] opcode,
@@ -47,7 +48,7 @@ module Datapath #(
   logic [DATA_W-1:0] WrmuxSrc;
   logic PcSel;  // mux select / flush signal
   logic [1:0] FAmuxSel;
-  logic [1:0] FBmuxSel;
+  logic [1:0] FBmuxSel; 
   logic [DATA_W-1:0] FAmux_Result;
   logic [DATA_W-1:0] FBmux_Result;
   logic Reg_Stall;  //1: PC fetch same, Register not update
@@ -115,13 +116,13 @@ module Datapath #(
       D.rd,
       A.Curr_Instr[19:15],
       A.Curr_Instr[24:20],
-      WrmuxSrc,
+      WB_Data,
       Reg1,
       Reg2
   );
 
   assign reg_num = D.rd;
-  assign reg_data = WrmuxSrc;
+  assign reg_data = WB_Data;
   assign reg_write_sig = D.RegWrite;
 
   // //sign extend
@@ -141,6 +142,7 @@ module Datapath #(
       B.MemWrite <= 0;
       B.ALUOp <= 0;
       B.Branch <= 0;
+      B.JalrSel <= 0;
       B.Curr_Pc <= 0;
       B.RD_One <= 0;
       B.RD_Two <= 0;
@@ -159,6 +161,7 @@ module Datapath #(
       B.MemWrite <= MemWrite;
       B.ALUOp <= ALUOp;
       B.Branch <= Branch;
+      B.JalrSel <= JalrSel;
       B.Curr_Pc <= A.Curr_Pc;
       B.RD_One <= Reg1;
       B.RD_Two <= Reg2;
@@ -191,7 +194,7 @@ module Datapath #(
 
   mux4 #(32) FAmux (
       B.RD_One,
-      WrmuxSrc,
+      WB_Data,
       C.Alu_Result,
       B.RD_One,
       FAmuxSel,
@@ -199,7 +202,7 @@ module Datapath #(
   );
   mux4 #(32) FBmux (
       B.RD_Two,
-      WrmuxSrc,
+      WB_Data,
       C.Alu_Result,
       B.RD_Two,
       FBmuxSel,
@@ -220,7 +223,9 @@ module Datapath #(
   BranchUnit #(9) brunit (
       B.Curr_Pc,
       B.ImmG,
+      B.RD_One,
       B.Branch,
+      B.JalrSel,
       ALUResult,
       BrImm,
       Old_PC_Four,
@@ -244,6 +249,7 @@ module Datapath #(
       C.rd <= 0;
       C.func3 <= 0;
       C.func7 <= 0;
+      C.JalrSel <= 0;
     end else begin
       C.RegWrite <= B.RegWrite;
       C.MemtoReg <= B.MemtoReg;
@@ -257,6 +263,7 @@ module Datapath #(
       C.rd <= B.rd;
       C.func3 <= B.func3;
       C.func7 <= B.func7;
+      C.JalrSel <= B.JalrSel;
       C.Curr_Instr <= B.Curr_Instr;  // debug tmp
     end
   end
@@ -290,6 +297,7 @@ module Datapath #(
       D.Alu_Result <= 0;
       D.MemReadData <= 0;
       D.rd <= 0;
+      D.JalrSel <= 0;
     end else begin
       D.RegWrite <= C.RegWrite;
       D.MemtoReg <= C.MemtoReg;
@@ -300,6 +308,7 @@ module Datapath #(
       D.MemReadData <= ReadData;
       D.rd <= C.rd;
       D.Curr_Instr <= C.Curr_Instr;  //Debug Tmp
+      D.JalrSel <= C.JalrSel;
     end
   end
 
@@ -311,6 +320,6 @@ module Datapath #(
       WrmuxSrc
   );
 
-  assign WB_Data = WrmuxSrc;
+  assign WB_Data = (D.JalrSel == 1) ? D.Pc_Four : WrmuxSrc;
 
 endmodule
