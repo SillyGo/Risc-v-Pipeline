@@ -14,6 +14,7 @@ package Pipe_Buf_Reg_PKG;
     logic        MemWrite;
     logic [1:0]  ALUOp;
     logic        Branch;
+    logic        JalrSel;
     logic [8:0]  Curr_Pc;
     logic [31:0] RD_One;
     logic [31:0] RD_Two;
@@ -40,6 +41,7 @@ package Pipe_Buf_Reg_PKG;
     logic [4:0]  rd;
     logic [2:0]  func3;
     logic [6:0]  func7;
+    logic        JalrSel;
     logic [31:0] Curr_Instr;
   } ex_mem_reg;
 
@@ -54,5 +56,7 @@ package Pipe_Buf_Reg_PKG;
     logic [31:0] MemReadData;
     logic [4:0]  rd;
     logic [31:0] Curr_Instr;
+    logic        JalrSel;
   } mem_wb_reg;
 endpackage
+
