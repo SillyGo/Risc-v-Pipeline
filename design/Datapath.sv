@@ -48,7 +48,7 @@ module Datapath #(
   logic [DATA_W-1:0] WrmuxSrc;
   logic PcSel;  // mux select / flush signal
   logic [1:0] FAmuxSel;
-  logic [1:0] FBmuxSel;
+  logic [1:0] FBmuxSel;PCPlus4
   logic [DATA_W-1:0] FAmux_Result;
   logic [DATA_W-1:0] FBmux_Result;
   logic Reg_Stall;  //1: PC fetch same, Register not update
@@ -315,6 +315,7 @@ module Datapath #(
       WrmuxSrc
   );
 
-  assign WB_Data = WrmuxSrc;
+  assign WB_Data = JalrSel ? D.PC_Four : WrmuxSrc;
 
 endmodule
+
