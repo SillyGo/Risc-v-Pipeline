@@ -25,6 +25,8 @@ module imm_Gen (
       };
       7'b0010011: //I type
           Imm_out = {inst_code[31] ? 20'hFFFFF : 20'b0, inst_code[31:20]};
+      7'b1101111: //Jal, se tiver erro no JAL, testar aqui antes de mais nada
+          Imm_out = {12{inst_code[31]}, inst_code[31], inst_code[19:12], inst_code[20], inst_code[30:21]}
 
       default: Imm_out = {32'b0};
 
