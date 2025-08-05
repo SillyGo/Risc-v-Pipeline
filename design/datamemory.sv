@@ -13,51 +13,77 @@ module datamemory #(
     output logic [DATA_W - 1:0] rd  // Read Data
 );
 
-  logic [31:0] raddress;
-  logic [31:0] waddress;
   logic [31:0] Datain;
   logic [31:0] Dataout;
   logic [ 3:0] Wr;
+  logic [DM_ADDRESS - 1:0] word_aligned_a;
+  logic [1:0] byte_offset;
+  
+  assign word_aligned_a = a & ~3; // Clear the lower 2 bits to get the base word address
 
   Memoria32Data mem32 (
-      .raddress(raddress),
-      .waddress(waddress),
-      .Clk(~clk),
-      .Datain(Datain),
-      .Dataout(Dataout),
-      .Wr(Wr)
+    .raddress({{22{1'b0}}, word_aligned_a}), // Access the word-aligned address in Memoria32Data
+    .waddress({{22{1'b0}}, word_aligned_a}), // Access the word-aligned address in Memoria32Data
+    .Clk(~clk), // Your Memoria32Data operates on the negative edge, keep this.
+    .Datain(Datain),
+    .Dataout(Dataout),
+    .Wr(Wr)
   );
 
+  assign byte_offset = a[1:0];
+
   always_ff @(*) begin
-    raddress = {{22{1'b0}}, a};
-    waddress = {{22{1'b0}}, a};
     Datain = wd;
     Wr = 4'b0000;
 
     if (MemRead) begin
+      // Dataout now contains the full 32-bit word from the word-aligned address.
+      // We need to extract the correct byte/half-word based on byte_offset.
       case (Funct3)
-        3'b000:  //LB
-          rd = {{24{Dataout[7]}}, Dataout[7:0]};  // Read byte with sign extension
-        3'b001:  //LH
-          rd = {{16{Dataout[15]}}, Dataout[15:0]};  // Read half-word with sign extension
-        3'b010:  //LW
-          rd = Dataout;  // Read word
-        3'b100:  //LBU
-          rd = {24'b0, Dataout[7:0]};  // Read byte unsigned (zero-extend)
-        // Default case: For unsupported Funct3 values, return the full word
-        default: rd = Dataout;
+        3'b000: begin // LB (Load Byte) - Sign-extended
+          case (byte_offset)
+            2'b00: rd = {{24{Dataout[7]}}, Dataout[7:0]};
+            2'b01: rd = {{24{Dataout[15]}}, Dataout[15:8]};
+            2'b10: rd = {{24{Dataout[23]}}, Dataout[23:16]};
+            2'b11: rd = {{24{Dataout[31]}}, Dataout[31:24]};
+          endcase
+      end
+      3'b001: begin // LH (Load Half-word) - Sign-extended
+          case (byte_offset[1]) // Only bit 1 matters for half-word alignment
+            1'b0: rd = {{16{Dataout[15]}}, Dataout[15:0]};
+            1'b1: rd = {{16{Dataout[31]}}, Dataout[31:16]};
+          endcase
+      end
+      3'b010: begin // LW (Load Word)
+        rd = Dataout; // Read the entire word
+      end
+      3'b100: begin // LBU (Load Byte Unsigned) - Zero-extended
+        case (byte_offset)
+          2'b00: rd = {24'b0, Dataout[7:0]};
+          2'b01: rd = {24'b0, Dataout[15:8]};
+          2'b10: rd = {24'b0, Dataout[23:16]};
+          2'b11: rd = {24'b0, Dataout[31:24]};
+        endcase
+      end
+      default: rd = Dataout; // Default case for unsupported Funct3 values (e.g., in a test environment)
       endcase
     end else if (MemWrite) begin
+      // For SB, SH, SW, we need to prepare Datain and Wr to write to the correct byte lanes
+      // of the word_aligned_a address.
       case (Funct3)
-        3'b000:  //SB
-          Wr = 4'b0001;  // Write byte
-        3'b001:  //SH
-          Wr = 4'b0011;  // Write half-word
-        3'b010: begin  //SW
-          Wr = 4'b1111;
-          Datain = wd;
+        3'b000: begin // SB (Store Byte)
+          Wr = 4'b0001 << byte_offset; // Enable only the target byte lane
+          Datain = wd << (byte_offset * 8); // Shift the data to the correct byte lane
         end
-        default: begin
+        3'b001: begin // SH (Store Half-word)
+          Wr = 4'b0011 << (byte_offset & ~1); // Enable the target half-word lanes
+          Datain = wd << ( (byte_offset & ~1) * 8); // Shift data to the correct half-word lane
+        end
+        3'b010: begin // SW (Store Word)
+          Wr = 4'b1111; // Enable all byte lanes for a full word write
+          Datain = wd; // Data is already a full word
+        end
+        default: begin // Default write to full word for unsupported Funct3
           Wr = 4'b1111;
           Datain = wd;
         end
