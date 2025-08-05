@@ -19,6 +19,7 @@ module Datapath #(
     MemRead,  // Memroy Reading Enable
     Branch,  // Branch Enable
     JalrSel,
+    halt_com,
     input  logic [          1:0] ALUOp,
     input  logic [ALU_CC_W -1:0] ALU_CC,         // ALU Control Code ( input of the ALU )
     output logic [          6:0] opcode,
@@ -143,6 +144,7 @@ module Datapath #(
       B.ALUOp <= 0;
       B.Branch <= 0;
       B.JalrSel <= 0;
+      B.halt_com <= 0;
       B.Curr_Pc <= 0;
       B.RD_One <= 0;
       B.RD_Two <= 0;
@@ -162,6 +164,7 @@ module Datapath #(
       B.ALUOp <= ALUOp;
       B.Branch <= Branch;
       B.JalrSel <= JalrSel;
+      B.halt_com <= halt_com;
       B.Curr_Pc <= A.Curr_Pc;
       B.RD_One <= Reg1;
       B.RD_Two <= Reg2;
@@ -226,6 +229,7 @@ module Datapath #(
       B.RD_One,
       B.Branch,
       B.JalrSel,
+      B.halt_com,
       ALUResult,
       BrImm,
       Old_PC_Four,
@@ -323,3 +327,4 @@ module Datapath #(
   assign WB_Data = (D.JalrSel == 1) ? D.Pc_Four : WrmuxSrc;
 
 endmodule
+
